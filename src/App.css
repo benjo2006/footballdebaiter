@@ -1,0 +1,836 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: 'DM Sans', sans-serif;
+  color: #f5f5f5;
+  background: #08090b;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 50% -20%,
+      rgba(255, 255, 255, 0.07),
+      transparent 35%
+    ),
+    #08090b;
+}
+
+button,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* =========================
+   NAVBAR
+========================= */
+
+.navbar {
+  width: 100%;
+  height: 82px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 7%;
+  background: rgba(8, 9, 11, 0.78);
+  backdrop-filter: blur(18px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.logo {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+
+.logo > span {
+  color: #ffffff;
+}
+
+.ai-text {
+  color: #8cff00 !important;
+  font-weight: 700;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  font-size: 14px;
+  color: #aaa5b8;
+}
+
+.nav-links a {
+  transition: color 0.2s ease;
+}
+
+.nav-links a:hover {
+  color: #ffffff;
+}
+
+.nav-button {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #ffffff;
+  color: #08090b;
+  padding: 11px 18px;
+  border-radius: 7px;
+  font-weight: 600;
+  transition: transform 0.2s ease;
+}
+
+.nav-button:hover {
+  transform: translateY(-2px);
+}
+
+/* =========================
+   HERO
+========================= */
+
+.hero {
+  min-height: 720px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 120px 20px 100px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  width: 650px;
+  height: 650px;
+  border-radius: 50%;
+  background: rgba(140, 255, 0, 0.07);
+  filter: blur(120px);
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.hero-content {
+  width: min(900px, 100%);
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow {
+  color: #8cff00;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 25px;
+}
+
+.hero h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(48px, 7vw, 86px);
+  line-height: 0.98;
+  letter-spacing: -4px;
+  margin-bottom: 30px;
+  color: #ffffff;
+  text-wrap: balance;
+}
+
+.hero h1 span {
+  color: #8cff00;
+}
+
+.hero-text {
+  max-width: 600px;
+  margin: 0 auto 45px;
+  color: #aaa5b8;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+/* =========================
+   DEBATE BOX
+========================= */
+
+.debate-box {
+  max-width: 720px;
+  margin: auto;
+  padding: 8px;
+  border: 1px solid rgba(140, 255, 0, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow:
+    0 25px 80px rgba(0, 0, 0, 0.35),
+    0 0 40px rgba(140, 255, 0, 0.025);
+  text-align: left;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.debate-box:focus-within {
+  border-color: rgba(140, 255, 0, 0.45);
+  box-shadow:
+    0 25px 80px rgba(0, 0, 0, 0.4),
+    0 0 45px rgba(140, 255, 0, 0.06);
+}
+
+.debate-box textarea {
+  width: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #ffffff;
+  padding: 20px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.debate-box textarea::placeholder {
+  color: #777181;
+}
+
+.debate-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px 8px 20px;
+  color: #777181;
+  font-size: 12px;
+}
+
+.debate-footer button {
+  border: none;
+  background: #8cff00;
+  color: #08090b;
+  padding: 13px 20px;
+  border-radius: 7px;
+  font-weight: 700;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.debate-footer button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(140, 255, 0, 0.18);
+}
+
+/* =========================
+   ANALYSIS CARD
+========================= */
+
+.analysis-card {
+  max-width: 720px;
+  margin: 30px auto 0;
+  padding: 32px;
+  border: 1px solid rgba(140, 255, 0, 0.2);
+  border-radius: 14px;
+  background: rgba(140, 255, 0, 0.025);
+  text-align: left;
+  animation: analysisAppear 0.4s ease;
+  scroll-margin-top: 100px;
+  position: relative;
+  overflow: hidden;
+}
+
+.analysis-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #8cff00;
+  opacity: 0.7;
+}
+
+.analysis-card h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 28px;
+  margin-bottom: 30px;
+  color: #ffffff;
+}
+
+.analysis-loading {
+  color: #aaa5b8;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+/* =========================
+   ANALYSIS HEADER
+========================= */
+
+.analysis-header {
+  margin-bottom: 28px;
+}
+
+.debate-subject span {
+  color: #8cff00;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.debate-subject h2 {
+  margin: 8px 0 14px;
+}
+
+/* =========================
+   PLAYER TAGS
+========================= */
+
+.player-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.player-tag {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(140, 255, 0, 0.18);
+  background: rgba(140, 255, 0, 0.05);
+  color: #caff91;
+  font-size: 11px;
+}
+
+/* =========================
+   STRENGTH
+========================= */
+
+.strength-box {
+  margin-bottom: 10px;
+  padding: 20px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.strength-label {
+  color: #aaa5b8;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: 7px;
+}
+
+.strength-box h2 {
+  margin: 0;
+  font-size: 25px;
+  color: #8cff00;
+}
+
+.strength-bar {
+  width: 100%;
+  height: 5px;
+  margin-top: 16px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.strength-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: #8cff00;
+  transition: width 0.7s ease;
+}
+
+/* =========================
+   ANALYSIS SECTIONS
+========================= */
+
+.analysis-section {
+  padding: 22px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.analysis-section h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  margin-bottom: 8px;
+  font-size: 16px;
+  color: #ffffff;
+}
+
+.analysis-section p {
+  max-width: 650px;
+  color: #aaa5b8;
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+/* =========================
+   VERDICT
+========================= */
+
+.analysis-verdict {
+  margin-top: 10px;
+  padding: 20px;
+  border-radius: 9px;
+  background: rgba(140, 255, 0, 0.07);
+  border: 1px solid rgba(140, 255, 0, 0.1);
+  box-shadow: 0 10px 35px rgba(140, 255, 0, 0.04);
+}
+
+.analysis-verdict span {
+  color: #8cff00;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.analysis-verdict p {
+  margin-top: 8px;
+  color: #eeeeee;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+/* =========================
+   RESULT BUTTONS
+========================= */
+
+.result-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.secondary-button {
+  border: 1px solid rgba(140, 255, 0, 0.22);
+  background: rgba(140, 255, 0, 0.05);
+  color: #d8ffad;
+  padding: 11px 16px;
+  border-radius: 7px;
+  font-weight: 600;
+  font-size: 13px;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.secondary-button:hover {
+  background: rgba(140, 255, 0, 0.1);
+  border-color: rgba(140, 255, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+/* =========================
+   HISTORY
+========================= */
+
+.history {
+  padding: 100px 7%;
+}
+
+.history h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(38px, 5vw, 65px);
+  letter-spacing: -2px;
+  margin-bottom: 50px;
+  color: #ffffff;
+}
+
+.history-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.history-card {
+  padding: 26px;
+  min-height: 180px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.history-card > span {
+  color: #8cff00;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
+.history-card h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  margin: 28px 0 8px;
+  color: #ffffff;
+}
+
+.history-card p {
+  color: #aaa5b8;
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.history-card button {
+  border: none;
+  background: transparent;
+  color: #8cff00;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0;
+}
+
+/* =========================
+   TOPICS
+========================= */
+
+.topics {
+  padding: 100px 7%;
+}
+
+.topics > p {
+  color: #8e8899;
+  font-size: 12px;
+  letter-spacing: 2px;
+  margin-bottom: 30px;
+}
+
+.topic-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.topic-card {
+  padding: 30px;
+  min-height: 200px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    background 0.25s ease;
+  cursor: pointer;
+}
+
+.topic-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(140, 255, 0, 0.35);
+  background: rgba(140, 255, 0, 0.025);
+}
+
+.topic-card span {
+  color: #8cff00;
+  font-size: 12px;
+}
+
+.topic-card h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 24px;
+  margin: 55px 0 8px;
+  color: #ffffff;
+}
+
+.topic-card p {
+  color: #aaa5b8;
+  font-size: 14px;
+}
+
+/* =========================
+   HOW IT WORKS
+========================= */
+
+.how {
+  padding: 120px 7%;
+}
+
+.how h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(38px, 5vw, 65px);
+  letter-spacing: -2px;
+  margin-bottom: 65px;
+  color: #ffffff;
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 60px;
+}
+
+.steps strong {
+  color: #8cff00;
+  font-size: 13px;
+}
+
+.steps h3 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 21px;
+  margin: 20px 0 10px;
+  color: #ffffff;
+}
+
+.steps p {
+  color: #aaa5b8;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+/* =========================
+   FOOTER
+========================= */
+
+footer {
+  padding: 40px 7%;
+}
+
+.footer-main {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+}
+
+.footer-main > p {
+  color: #aaa5b8;
+  font-size: 13px;
+}
+
+.footer-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 25px;
+}
+
+.creator-signature {
+  color: #c8b5ff;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  white-space: nowrap;
+}
+
+.contact-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border: 1px solid rgba(200, 181, 255, 0.3);
+  border-radius: 7px;
+  color: #d5c8ff;
+  background: rgba(200, 181, 255, 0.04);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  white-space: nowrap;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.contact-button:hover {
+  transform: translateY(-2px);
+  background: rgba(200, 181, 255, 0.1);
+  border-color: rgba(200, 181, 255, 0.55);
+}
+
+/* =========================
+   ANIMATION
+========================= */
+
+@keyframes analysisAppear {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================
+   TABLET
+========================= */
+
+@media (max-width: 900px) {
+  .footer-main {
+    flex-wrap: wrap;
+  }
+
+  .footer-main > p {
+    order: 3;
+    width: 100%;
+  }
+
+  .history-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 768px) {
+
+  .navbar {
+    padding: 0 5%;
+  }
+
+  .nav-links {
+    gap: 10px;
+  }
+
+  .nav-links a {
+    display: none;
+  }
+
+  .hero {
+    min-height: 650px;
+    padding: 90px 15px 70px;
+  }
+
+  .hero h1 {
+    font-size: clamp(42px, 12vw, 58px);
+    letter-spacing: -2.5px;
+    line-height: 1;
+  }
+
+  .hero-text {
+    font-size: 15px;
+    max-width: 500px;
+  }
+
+  .debate-box textarea {
+    min-height: 130px;
+  }
+
+  .debate-footer {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  .debate-footer button {
+    width: 100%;
+  }
+
+  .topic-grid,
+  .steps {
+    grid-template-columns: 1fr;
+  }
+
+  .topics,
+  .how,
+  .history {
+    padding: 80px 5%;
+  }
+
+  .analysis-card {
+    padding: 24px 20px;
+  }
+
+  .result-actions {
+    flex-direction: column;
+  }
+
+  .secondary-button {
+    width: 100%;
+  }
+
+  .footer-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+
+  .footer-main > p {
+    order: initial;
+    width: auto;
+  }
+
+  .footer-right {
+    width: 100%;
+    justify-content: space-between;
+    gap: 15px;
+  }
+
+  .creator-signature {
+    font-size: 9px;
+    letter-spacing: 0.8px;
+    white-space: normal;
+  }
+}
+
+/* =========================
+   SMALL MOBILE
+========================= */
+
+@media (max-width: 480px) {
+
+  .navbar {
+    height: 72px;
+  }
+
+  .logo {
+    font-size: 16px;
+  }
+
+  .nav-button {
+    padding: 9px 12px;
+    font-size: 11px;
+  }
+
+  .hero h1 {
+    font-size: 43px;
+  }
+
+  .debate-box {
+    border-radius: 11px;
+  }
+
+  .footer-right {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .contact-button {
+    width: auto;
+  }
+}
