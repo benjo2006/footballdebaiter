@@ -431,16 +431,14 @@ Try Football Debater yourself.
                     {/* VERDICT */}
 
                     <div className="analysis-verdict">
+  <span>VERDICT</span>
+  <p>{analysis.verdict}</p>
+</div>
 
-                      <span>
-                        FINAL VERDICT
-                      </span>
-
-                      <p>
-                        {analysis.verdict}
-                      </p>
-
-                    </div>
+<div className="analysis-final-decision">
+  <span>FINAL CALL</span>
+  <p>{analysis.finalDecision}</p>
+</div>
 
                     {/* ACTION BUTTONS */}
 
