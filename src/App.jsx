@@ -6,7 +6,19 @@ function App() {
   const [analysis, setAnalysis] = useState(null)
   const [history, setHistory] = useState([])
 
+  const [mode, setMode] = useState('analyze')
+
+  const [debateRound, setDebateRound] = useState(0)
+  const [debateHistory, setDebateHistory] = useState([])
+  const [debateScores, setDebateScores] = useState({
+    user: 0,
+    ai: 0,
+  })
+  const [debateResult, setDebateResult] = useState(null)
+  const [debateLoading, setDebateLoading] = useState(false)
+
   const analysisRef = useRef(null)
+  const debateRef = useRef(null)
 
   useEffect(() => {
     if (analysis) {
@@ -18,6 +30,21 @@ function App() {
       }, 100)
     }
   }, [analysis])
+
+  useEffect(() => {
+    if (debateRound > 0 || debateResult) {
+      setTimeout(() => {
+        debateRef.current?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        })
+      }, 100)
+    }
+  }, [debateRound, debateResult])
+
+  // =========================
+  // NORMAL ANALYSIS MODE
+  // =========================
 
   const analyzeArgument = async () => {
     if (!argument.trim() || analysis?.loading) return
@@ -31,7 +58,8 @@ function App() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          argument: argument,
+          mode: 'analyze',
+          argument,
         }),
       })
 
@@ -65,7 +93,143 @@ function App() {
     }
   }
 
+  // =========================
+  // DEBATE MODE
+  // =========================
+
+  const startDebateMode = () => {
+    setMode('debate')
+    setArgument('')
+    setAnalysis(null)
+    setDebateRound(0)
+    setDebateHistory([])
+    setDebateScores({
+      user: 0,
+      ai: 0,
+    })
+    setDebateResult(null)
+
+    // Scroll directly to the YOUR TAKE box
+    setTimeout(() => {
+      document.getElementById('your-take-box')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    }, 150)
+  }
+
+  const startAnalyzeMode = () => {
+    setMode('analyze')
+    setArgument('')
+    setAnalysis(null)
+    setDebateRound(0)
+    setDebateHistory([])
+    setDebateScores({
+      user: 0,
+      ai: 0,
+    })
+    setDebateResult(null)
+  }
+
+  const submitDebateRound = async () => {
+    if (!argument.trim() || debateLoading || debateRound >= 5) {
+      return
+    }
+
+    setDebateLoading(true)
+
+    const currentRound = debateRound + 1
+
+    try {
+      const response = await fetch('/.netlify/functions/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          mode: 'debate',
+          userResponse: argument,
+          round: currentRound,
+          history: debateHistory,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Something went wrong')
+      }
+
+      const result = JSON.parse(data.analysis)
+
+      const newEntry = {
+        round: currentRound,
+        user: argument,
+        ai: result.aiResponse,
+        userScore: result.userScore,
+        aiScore: result.aiScore,
+      }
+
+      const updatedHistory = [
+        ...debateHistory,
+        newEntry,
+      ]
+
+      const updatedScores = {
+        user:
+          debateScores.user + Number(result.userScore.total || 0),
+        ai:
+          debateScores.ai + Number(result.aiScore.total || 0),
+      }
+
+      setDebateHistory(updatedHistory)
+      setDebateScores(updatedScores)
+      setDebateRound(currentRound)
+      setArgument('')
+
+      if (currentRound === 5) {
+        setDebateResult({
+          winner: result.winner,
+          finalDecision: result.finalDecision,
+          userTotal: updatedScores.user,
+          aiTotal: updatedScores.ai,
+        })
+      }
+    } catch (error) {
+      console.error(error)
+
+      alert(
+        'Unable to continue the debate right now. Please try again.'
+      )
+    } finally {
+      setDebateLoading(false)
+    }
+  }
+
+  const resetDebate = () => {
+    setArgument('')
+    setDebateRound(0)
+    setDebateHistory([])
+    setDebateScores({
+      user: 0,
+      ai: 0,
+    })
+    setDebateResult(null)
+
+    setTimeout(() => {
+      document.getElementById('your-take-box')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    }, 150)
+  }
+
+  // =========================
+  // GENERAL FUNCTIONS
+  // =========================
+
   const chooseTopic = (topic) => {
+    setMode('analyze')
     setArgument(topic)
     setAnalysis(null)
 
@@ -75,6 +239,7 @@ function App() {
   }
 
   const tryAnotherArgument = () => {
+    setMode('analyze')
     setArgument('')
     setAnalysis(null)
 
@@ -89,7 +254,7 @@ function App() {
     if (!analysis || analysis.loading || analysis.error) return
 
     const shareText = `
-Football Debater
+FootballDEBAITER
 
 ${analysis.subject || 'Football Debate'}
 
@@ -97,13 +262,13 @@ Argument Strength: ${analysis.strength}
 
 ${analysis.verdict}
 
-Try Football Debater yourself.
+Try FootballDEBAITER yourself.
     `.trim()
 
     try {
       if (navigator.share) {
         await navigator.share({
-          title: 'Football Debater',
+          title: 'FootballDEBAITER',
           text: shareText,
         })
       } else {
@@ -185,282 +350,629 @@ Try Football Debater yourself.
               counterarguments, statistics and an AI-powered verdict.
             </p>
 
-            {/* DEBATE BOX */}
+            {/* MODE SWITCH */}
 
-            <div className="debate-box">
+            <div className="mode-switch">
 
-              <textarea
-                placeholder="What's your football take?"
-                rows="4"
-                value={argument}
-                onChange={(e) => setArgument(e.target.value)}
-                disabled={analysis?.loading}
-              />
+              <button
+                className={
+                  mode === 'analyze'
+                    ? 'mode-button active'
+                    : 'mode-button'
+                }
+                onClick={startAnalyzeMode}
+              >
+                ANALYZE ARGUMENT
+              </button>
 
-              <div className="debate-footer">
-
-                <span>
-                  Be bold. Make your case.
-                </span>
-
-                <button
-                  onClick={analyzeArgument}
-                  disabled={
-                    analysis?.loading ||
-                    !argument.trim()
-                  }
-                >
-                  {analysis?.loading
-                    ? 'Analyzing...'
-                    : 'Analyze Argument →'}
-                </button>
-
-              </div>
+              <button
+                className={
+                  mode === 'debate'
+                    ? 'mode-button active'
+                    : 'mode-button'
+                }
+                onClick={startDebateMode}
+              >
+                DEBATE MODE
+              </button>
 
             </div>
 
-            {/* ANALYSIS */}
+            {/* NORMAL ANALYZE MODE */}
 
-            {analysis && (
+            {mode === 'analyze' && (
 
-              <div
-                className="analysis-card"
-                ref={analysisRef}
-              >
+              <>
 
-                {/* LOADING */}
+                <div className="debate-box">
 
-                {analysis.loading ? (
+                  <textarea
+                    placeholder="What's your football take?"
+                    rows="4"
+                    value={argument}
+                    onChange={(e) => setArgument(e.target.value)}
+                    disabled={analysis?.loading}
+                  />
 
-                  <>
-                    <p className="eyebrow">
-                      ANALYZING YOUR ARGUMENT
-                    </p>
+                  <div className="debate-footer">
 
-                    <h2>
-                      Breaking down your argument...
-                    </h2>
-
-                    <p className="analysis-loading">
-                      Football Debater is examining the
-                      players, evidence and reasoning.
-                    </p>
-                  </>
-
-                ) : analysis.error ? (
-
-                  <>
-                    <p className="eyebrow">
-                      ANALYSIS ERROR
-                    </p>
-
-                    <h2>
-                      Couldn't analyze that argument.
-                    </h2>
-
-                    <p className="analysis-loading">
-                      {analysis.error}
-                    </p>
+                    <span>
+                      Be bold. Make your case.
+                    </span>
 
                     <button
-                      className="secondary-button"
-                      onClick={tryAnotherArgument}
+                      onClick={analyzeArgument}
+                      disabled={
+                        analysis?.loading ||
+                        !argument.trim()
+                      }
                     >
-                      Try Again
+                      {analysis?.loading
+                        ? 'Analyzing...'
+                        : 'Analyze Argument →'}
                     </button>
-                  </>
 
-                ) : (
+                  </div>
 
-                  <>
+                </div>
 
-                    {/* ANALYSIS HEADER */}
+                {/* ANALYSIS */}
 
-                    <div className="analysis-header">
+                {analysis && (
 
-                      <p className="eyebrow">
-                        ARGUMENT ANALYSIS
-                      </p>
+                  <div
+                    className="analysis-card"
+                    ref={analysisRef}
+                  >
 
-                      <div className="debate-subject">
+                    {analysis.loading ? (
 
-                        <span>
-                          DEBATE SUBJECT
-                        </span>
+                      <>
+
+                        <p className="eyebrow">
+                          ANALYZING YOUR ARGUMENT
+                        </p>
 
                         <h2>
-                          {analysis.subject ||
-                            'Football Debate'}
+                          Breaking down your argument...
                         </h2>
 
-                        {analysis.players &&
-                          analysis.players.length > 0 && (
+                        <p className="analysis-loading">
+                          FootballDEBAITER is examining the
+                          players, evidence and reasoning.
+                        </p>
 
-                            <div className="player-tags">
+                      </>
 
-                              {analysis.players.map(
-                                (player, index) => (
-                                  <span
-                                    key={index}
-                                    className="player-tag"
-                                  >
-                                    {player}
-                                  </span>
-                                )
+                    ) : analysis.error ? (
+
+                      <>
+
+                        <p className="eyebrow">
+                          ANALYSIS ERROR
+                        </p>
+
+                        <h2>
+                          Couldn't analyze that argument.
+                        </h2>
+
+                        <p className="analysis-loading">
+                          {analysis.error}
+                        </p>
+
+                        <button
+                          className="secondary-button"
+                          onClick={tryAnotherArgument}
+                        >
+                          Try Again
+                        </button>
+
+                      </>
+
+                    ) : (
+
+                      <>
+
+                        <div className="analysis-header">
+
+                          <p className="eyebrow">
+                            ARGUMENT ANALYSIS
+                          </p>
+
+                          <div className="debate-subject">
+
+                            <span>
+                              DEBATE SUBJECT
+                            </span>
+
+                            <h2>
+                              {analysis.subject ||
+                                'Football Debate'}
+                            </h2>
+
+                            {analysis.players &&
+                              analysis.players.length > 0 && (
+
+                                <div className="player-tags">
+
+                                  {analysis.players.map(
+                                    (player, index) => (
+
+                                      <span
+                                        key={index}
+                                        className="player-tag"
+                                      >
+                                        {player}
+                                      </span>
+
+                                    )
+                                  )}
+
+                                </div>
+
                               )}
+
+                          </div>
+
+                        </div>
+
+                        <div className="strength-box">
+
+                          <div className="strength-header">
+
+                            <div>
+
+                              <p className="strength-label">
+                                ARGUMENT STRENGTH
+                              </p>
+
+                              <h2>
+                                {analysis.strength}
+                              </h2>
 
                             </div>
 
-                          )}
+                          </div>
 
-                      </div>
+                          <div className="strength-bar">
 
-                    </div>
+                            <div
+                              className="strength-fill"
+                              style={{
+                                width: `${Math.min(
+                                  100,
+                                  Math.max(
+                                    0,
+                                    parseFloat(
+                                      analysis.strength
+                                    ) * 10
+                                  )
+                                )}%`,
+                              }}
+                            />
 
-                    {/* ARGUMENT STRENGTH */}
+                          </div>
 
-                    <div className="strength-box">
+                        </div>
 
-                      <div className="strength-header">
+                        <div className="analysis-section">
 
-                        <div>
+                          <h3>
+                            Your Claim
+                          </h3>
 
-                          <p className="strength-label">
-                            ARGUMENT STRENGTH
+                          <p>
+                            {analysis.claim}
                           </p>
 
-                          <h2>
-                            {analysis.strength}
-                          </h2>
+                        </div>
+
+                        <div className="analysis-section">
+
+                          <h3>
+                            Claim Type
+                          </h3>
+
+                          <p>
+                            {analysis.claimType}
+                          </p>
+
+                        </div>
+
+                        <div className="analysis-section">
+
+                          <h3>
+                            Fact Check
+                          </h3>
+
+                          <p>
+                            {analysis.factCheck}
+                          </p>
+
+                        </div>
+
+                        <div className="analysis-section">
+
+                          <h3>
+                            Evidence
+                          </h3>
+
+                          <p>
+                            {analysis.evidence}
+                          </p>
+
+                        </div>
+
+                        <div className="analysis-section">
+
+                          <h3>
+                            Counterargument
+                          </h3>
+
+                          <p>
+                            {analysis.counterargument}
+                          </p>
+
+                        </div>
+
+                        <div className="analysis-verdict">
+
+                          <span>
+                            VERDICT
+                          </span>
+
+                          <p>
+                            {analysis.verdict}
+                          </p>
+
+                        </div>
+
+                        <div className="analysis-final-decision">
+
+                          <span>
+                            FINAL CALL
+                          </span>
+
+                          <p>
+                            {analysis.finalDecision}
+                          </p>
+
+                        </div>
+
+                        <div className="result-actions">
+
+                          <button
+                            className="secondary-button"
+                            onClick={tryAnotherArgument}
+                          >
+                            Try Another Argument
+                          </button>
+
+                          <button
+                            className="secondary-button"
+                            onClick={shareResult}
+                          >
+                            Share Debate
+                          </button>
+
+                        </div>
+
+                      </>
+
+                    )}
+
+                  </div>
+
+                )}
+
+              </>
+
+            )}
+
+            {/* DEBATE MODE */}
+
+            {mode === 'debate' && (
+
+              <div className="debate-mode-container">
+
+                <div className="debate-mode-header">
+
+                  <p className="eyebrow">
+                    DEBATE MODE
+                  </p>
+
+                  <h2>
+                    Five rounds. One winner.
+                  </h2>
+
+                  <p>
+                    You and FootballDEBAITER get equal
+                    opportunity to make your case. Every
+                    take is scored using the same criteria.
+                  </p>
+
+                </div>
+
+                {/* ROUND INDICATOR */}
+
+                <div className="round-indicator">
+
+                  {[1, 2, 3, 4, 5].map((round) => (
+
+                    <div
+                      key={round}
+                      className={
+                        debateRound >= round
+                          ? 'round-dot completed'
+                          : 'round-dot'
+                      }
+                    >
+                      {round}
+                    </div>
+
+                  ))}
+
+                </div>
+
+                <div className="round-label">
+
+                  {debateResult
+                    ? 'DEBATE COMPLETE'
+                    : `ROUND ${debateRound + 1} OF 5`}
+
+                </div>
+
+                {/* SCOREBOARD */}
+
+                <div className="debate-scoreboard">
+
+                  <div className="score-player">
+
+                    <span>
+                      YOU
+                    </span>
+
+                    <strong>
+                      {debateScores.user}
+                    </strong>
+
+                    <small>
+                      / 500
+                    </small>
+
+                  </div>
+
+                  <div className="score-divider">
+                    VS
+                  </div>
+
+                  <div className="score-player">
+
+                    <span>
+                      FOOTBALLDEBAITER
+                    </span>
+
+                    <strong>
+                      {debateScores.ai}
+                    </strong>
+
+                    <small>
+                      / 500
+                    </small>
+
+                  </div>
+
+                </div>
+
+                {/* DEBATE TRANSCRIPT */}
+
+                {debateHistory.length > 0 && (
+
+                  <div className="debate-transcript">
+
+                    {debateHistory.map((round) => (
+
+                      <div
+                        className="debate-round-card"
+                        key={round.round}
+                      >
+
+                        <div className="round-title">
+                          ROUND {round.round}
+                        </div>
+
+                        <div className="take user-take">
+
+                          <div className="take-header">
+
+                            <span>
+                              YOUR TAKE
+                            </span>
+
+                            <strong>
+                              {round.userScore.total}/100
+                            </strong>
+
+                          </div>
+
+                          <p>
+                            {round.user}
+                          </p>
+
+                        </div>
+
+                        <div className="take ai-take">
+
+                          <div className="take-header">
+
+                            <span>
+                              FOOTBALLDEBAITER
+                            </span>
+
+                            <strong>
+                              {round.aiScore.total}/100
+                            </strong>
+
+                          </div>
+
+                          <p>
+                            {round.ai}
+                          </p>
+
+                        </div>
+
+                        <div className="round-breakdown">
+
+                          <span>
+                            YOUR SCORE: {round.userScore.total}
+                          </span>
+
+                          <span>
+                            AI SCORE: {round.aiScore.total}
+                          </span>
 
                         </div>
 
                       </div>
 
-                      <div className="strength-bar">
+                    ))}
 
-                        <div
-                          className="strength-fill"
-                          style={{
-                            width: `${Math.min(
-                              100,
-                              Math.max(
-                                0,
-                                parseFloat(
-                                  analysis.strength
-                                ) * 10
-                              )
-                            )}%`,
-                          }}
-                        />
+                  </div>
+
+                )}
+
+                {/* FINAL RESULT */}
+
+                {debateResult ? (
+
+                  <div
+                    className="debate-final-card"
+                    ref={debateRef}
+                  >
+
+                    <p className="eyebrow">
+                      FINAL RESULT
+                    </p>
+
+                    <h2>
+                      {debateResult.winner}
+                    </h2>
+
+                    <div className="final-score">
+
+                      <div>
+
+                        <span>
+                          YOU
+                        </span>
+
+                        <strong>
+                          {debateResult.userTotal}
+                        </strong>
+
+                      </div>
+
+                      <div className="final-vs">
+                        VS
+                      </div>
+
+                      <div>
+
+                        <span>
+                          FOOTBALLDEBAITER
+                        </span>
+
+                        <strong>
+                          {debateResult.aiTotal}
+                        </strong>
 
                       </div>
 
                     </div>
 
-                    {/* YOUR CLAIM */}
+                    <div className="analysis-final-decision">
 
-                    <div className="analysis-section">
-
-                      <h3>
-                        Your Claim
-                      </h3>
+                      <span>
+                        FINAL CALL
+                      </span>
 
                       <p>
-                        {analysis.claim}
+                        {debateResult.finalDecision}
                       </p>
 
                     </div>
 
-                    {/* CLAIM TYPE */}
+                    <button
+                      className="debate-reset-button"
+                      onClick={resetDebate}
+                    >
+                      START ANOTHER DEBATE →
+                    </button>
 
-                    <div className="analysis-section">
+                  </div>
 
-                      <h3>
-                        Claim Type
-                      </h3>
+                ) : (
 
-                      <p>
-                        {analysis.claimType}
-                      </p>
+                  <div
+                    className="debate-input-card"
+                    ref={debateRef}
+                  >
 
-                    </div>
+                    <div className="turn-label">
 
-                    {/* FACT CHECK */}
-
-                    <div className="analysis-section">
-
-                      <h3>
-                        Fact Check
-                      </h3>
-
-                      <p>
-                        {analysis.factCheck}
-                      </p>
+                      {debateRound === 0
+                        ? 'YOUR OPENING TAKE'
+                        : 'YOUR RESPONSE'}
 
                     </div>
 
-                    {/* EVIDENCE */}
+                    <textarea
+                      id="your-take-box"
+                      placeholder={
+                        debateRound === 0
+                          ? "Start the debate. What's your football take?"
+                          : "Respond to FootballDEBAITER's argument..."
+                      }
+                      rows="5"
+                      value={argument}
+                      onChange={(e) =>
+                        setArgument(e.target.value)
+                      }
+                      disabled={debateLoading}
+                    />
 
-                    <div className="analysis-section">
+                    <div className="debate-footer">
 
-                      <h3>
-                        Evidence
-                      </h3>
+                      <span>
 
-                      <p>
-                        {analysis.evidence}
-                      </p>
+                        {debateRound === 0
+                          ? 'Make your opening case.'
+                          : 'Defend your position.'}
 
-                    </div>
-
-                    {/* COUNTERARGUMENT */}
-
-                    <div className="analysis-section">
-
-                      <h3>
-                        Counterargument
-                      </h3>
-
-                      <p>
-                        {analysis.counterargument}
-                      </p>
-
-                    </div>
-
-                    {/* VERDICT */}
-
-                    <div className="analysis-verdict">
-  <span>VERDICT</span>
-  <p>{analysis.verdict}</p>
-</div>
-
-<div className="analysis-final-decision">
-  <span>FINAL CALL</span>
-  <p>{analysis.finalDecision}</p>
-</div>
-
-                    {/* ACTION BUTTONS */}
-
-                    <div className="result-actions">
+                      </span>
 
                       <button
-                        className="secondary-button"
-                        onClick={tryAnotherArgument}
+                        onClick={submitDebateRound}
+                        disabled={
+                          debateLoading ||
+                          !argument.trim()
+                        }
                       >
-                        Try Another Argument
-                      </button>
 
-                      <button
-                        className="secondary-button"
-                        onClick={shareResult}
-                      >
-                        Share Debate
+                        {debateLoading
+                          ? 'FootballDEBAITER is responding...'
+                          : debateRound === 0
+                            ? 'Enter Debate →'
+                            : debateRound === 4
+                              ? 'Final Round →'
+                              : 'Submit Take →'}
+
                       </button>
 
                     </div>
 
-                  </>
+                  </div>
+
                 )}
 
               </div>
@@ -689,14 +1201,21 @@ Try Football Debater yourself.
         <div className="footer-main">
 
           <div className="logo">
+
             FOOTBALL
+
             <span>
+
               DEB
+
               <span className="ai-text">
                 AI
               </span>
+
               TER
+
             </span>
+
           </div>
 
           <p>
