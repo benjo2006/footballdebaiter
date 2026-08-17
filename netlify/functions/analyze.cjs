@@ -66,6 +66,31 @@ For football arguments:
 - Consider statistics, achievements, ability, legacy and context.
 - Be decisive when the evidence supports a conclusion.
 
+IMPORTANT:
+
+The "finalDecision" MUST be an actual footballing stand.
+
+Do NOT write:
+"It depends."
+"Both are great."
+"Both have arguments."
+"It is subjective."
+"There is no clear answer."
+
+Instead, choose a side whenever the available evidence allows a reasonable conclusion.
+
+For player comparisons, use this format:
+
+"I'd go with [PLAYER] overall. [PLAYER] has the stronger case because [2-4 specific football reasons]."
+
+For club comparisons:
+
+"I'd go with [CLUB] overall. [CLUB] has the stronger case because [specific reasons]."
+
+For other football debates, make one clear final judgement.
+
+The finalDecision must answer the actual question asked by the user.
+
 Return ONLY valid JSON.
 
 {
@@ -88,11 +113,16 @@ ${argument}
           model: "openai/gpt-oss-120b",
           messages: [
             {
+              role: "system",
+              content:
+                "You are a decisive and knowledgeable football debate analyst. Always make a clear final footballing judgement when the evidence supports one.",
+            },
+            {
               role: "user",
               content: prompt,
             },
           ],
-          temperature: 0.2,
+          temperature: 0.15,
         });
 
       const analysis =
@@ -156,7 +186,7 @@ ROUND ${item.round}
 USER:
 ${item.user}
 
-AI:
+FOOTBALLDEBAITER:
 ${item.ai}
 
 USER SCORE:
@@ -169,30 +199,24 @@ ${item.aiScore?.total ?? 0}
               .join("\n")
           : "No previous rounds.";
 
-      // =======================================================
-      // STEP 1 — FACT/CLAIM ANALYSIS
-      // =======================================================
-
       const judgePrompt = `
-You are the HEAD JUDGE of FootballDEBAITER.
+You are the HEAD JUDGE of FOOTBALLDEBAITER.
 
 This is a serious five-round football debate.
 
-You are NOT judging who sounds more intelligent.
+You are NOT automatically supporting the AI.
 
-You are NOT judging who wrote the longer response.
+You are NOT automatically supporting the user.
 
-You are NOT automatically favoring the AI.
-
-You are judging the actual FOOTBALL CLAIMS.
+You judge the actual football claims.
 
 ========================================================
 CURRENT ROUND
 ========================================================
 
-Round: ${currentRound}/5
+ROUND ${currentRound}/5
 
-USER CLAIM:
+USER'S TAKE:
 
 ${userResponse}
 
@@ -203,16 +227,22 @@ PREVIOUS ROUNDS
 ${historyText}
 
 ========================================================
-STEP 1 — IDENTIFY THE DEBATE
+IDENTIFY THE ACTUAL DEBATE
 ========================================================
 
 Determine:
 
-- The players/teams/clubs involved.
-- The user's actual position.
-- Whether this is overall greatness, current ability,
-  peak ability, legacy, statistics, tactics, etc.
-- What evidence is relevant.
+- Who or what is being compared?
+- What exactly is the user's position?
+- What exactly is the AI's position?
+- Is this about overall greatness?
+- Current ability?
+- Peak ability?
+- Legacy?
+- Statistics?
+- Trophies?
+- Tactical ability?
+- Something else?
 
 DO NOT silently change the user's question.
 
@@ -220,345 +250,223 @@ If the user says:
 
 "Messi is better than Dembélé"
 
-do NOT automatically reinterpret that as:
-
-"Who is better right now?"
-
-Treat it as an overall comparison unless the user says otherwise.
+treat this as an overall comparison unless the user explicitly
+says they mean current form.
 
 ========================================================
-STEP 2 — EXTRACT THE USER'S CLAIMS
+FOOTBALL EVIDENCE
 ========================================================
 
-Extract every meaningful claim from the user's response.
+Use established football knowledge.
 
-For each claim classify it as:
+Relevant factors may include:
+
+- Goals
+- Assists
+- Goal contributions
+- Chance creation
+- Trophies
+- League titles
+- Champions League
+- World Cup
+- International achievements
+- Ballon d'Or
+- Golden Boots
+- Individual awards
+- Peak ability
+- Longevity
+- Consistency
+- Big-game performances
+- Tactical influence
+- Technical ability
+- Playmaking
+- Leadership
+- Legacy
+- Historical significance
+- Club legacy
+- Fan and cultural impact
+
+Do NOT invent statistics.
+
+If an exact number is uncertain, do not fabricate it.
+
+========================================================
+LEGACY
+========================================================
+
+Legacy matters when the debate concerns:
+
+- Overall greatness
+- All-time rankings
+- Career comparisons
+- Historical importance
+- Club identity
+- Cultural impact
+
+Consider:
+
+- Longevity
+- Major achievements
+- Individual awards
+- Records
+- Iconic performances
+- Historical influence
+- International legacy
+- Club legacy
+- Fan connection
+- Cultural impact
+
+Legacy is NOT an automatic victory.
+
+It is one of the factors used to determine the stronger case.
+
+========================================================
+FAN EMOTION
+========================================================
+
+Fan emotion can be relevant when discussing:
+
+- Legacy
+- Greatness
+- Cultural influence
+- Icon status
+- Inspiration
+- Emotional connection
+
+But popularity alone is not proof of footballing superiority.
+
+========================================================
+CLAIM ANALYSIS
+========================================================
+
+Identify every meaningful claim in the user's response.
+
+Classify each as:
 
 FACTUAL
 OPINION
 INTERPRETATION
 
-Examples:
+If the user makes a TRUE and relevant factual claim,
+reward it significantly.
 
-"Messi has more Ballon d'Ors than Dembélé."
-= FACTUAL
-
-"Messi is the better player."
-= OPINION / CONCLUSION
-
-"Messi's longevity makes him more valuable."
-= INTERPRETATION
-
-========================================================
-STEP 3 — FACTUAL CLAIMS
-========================================================
-
-For established football facts, use your football knowledge.
-
-DO NOT invent statistics.
-
-If exact numbers are not certain, use qualitative language.
-
-Examples of established facts:
-
-- Messi has won eight Ballon d'Or awards.
-- Messi won the 2022 FIFA World Cup.
-- Messi has an enormous career goal and assist record.
-- Messi has a substantially larger career body of work.
-- Dembélé has won major trophies with PSG and France.
-- Dembélé has had an elite recent period at PSG.
-
-If a user states a TRUE and RELEVANT factual advantage,
-that MUST materially increase the user's score.
-
-If the AI cannot refute the factual claim,
-the AI cannot score higher merely by saying:
-
-"More context is needed."
-
-That is NOT a counterargument.
-
-========================================================
-STEP 4 — LEGACY
-========================================================
-
-Legacy is a legitimate football factor.
-
-For overall/player-greatness debates, consider:
-
-- Career longevity
-- Major trophies
-- Individual awards
-- Records
-- Peak level
-- Consistency
-- Big-game performances
-- International legacy
-- Club legacy
-- Historical influence
-- Cultural impact
-- Fan connection
-
-A legendary player's legacy should receive substantial weight
-when the debate concerns overall greatness.
-
-BUT:
-
-Legacy is NOT an automatic win.
-
-It is evidence.
-
-========================================================
-STEP 5 — FAN EMOTION
-========================================================
-
-Fan emotion and cultural impact are legitimate when relevant.
-
-Examples:
-
-- Inspiration
-- Icon status
-- Connection with supporters
-- Cultural influence
-- Emotional moments
-- Influence on generations
-
-But fan popularity alone does NOT prove sporting superiority.
-
-========================================================
-STEP 6 — SCORE THE USER'S CLAIMS
-========================================================
-
-Use this scoring philosophy:
-
-UNSUPPORTED CLAIM:
-
-0-45
-
-OPINION WITH LITTLE REASONING:
-
-40-60
-
-REASONABLE FOOTBALL OPINION:
-
-55-70
-
-STRONG ARGUMENT:
-
-70-82
-
-STRONG ARGUMENT WITH MULTIPLE VALID FACTUAL POINTS:
-
-80-90
-
-EXCEPTIONAL, WELL-SUPPORTED ARGUMENT:
-
-90-100
-
-========================================================
-CRITICAL SCORING RULE
-========================================================
-
-A TRUE, RELEVANT FACTUAL CLAIM MUST NOT RECEIVE
-a low score simply because the AI disagrees.
-
-For example:
-
-USER:
-
-"Messi has more Ballon d'Ors than Dembélé."
-
-That is a major factual advantage in an overall-career debate.
-
-The user should receive a HIGH score for that round.
-
-The AI cannot respond:
+If the AI cannot refute that factual claim,
+the AI must not receive a higher score merely by saying:
 
 "That is only one factor."
 
-and then receive 80.
+That is not enough.
 
-"That is only one factor" is NOT a refutation.
-
-The AI must provide a relevant counterargument.
-
-For example:
-
-"Yes, Messi has vastly more Ballon d'Ors, but if the debate
-is specifically about current ability, Dembélé's recent level
-changes the comparison."
-
-THAT is an actual counterargument.
+The AI must actually explain why that fact does or does not
+settle the debate.
 
 ========================================================
-IMPORTANT EXAMPLE
+EXAMPLE
 ========================================================
 
 USER:
 
-"Messi has more goals than Dembélé."
+"Messi has more Ballon d'Ors than Dembélé."
 
-If the claim is factually correct:
+If this claim is correct, it is a strong factual point
+in an overall-career comparison.
 
-USER CLAIM STRENGTH should be HIGH.
-
-The AI may respond:
-
-"Yes, Messi has a much greater career scoring record,
-but goals alone do not determine overall footballing ability."
-
-That is a legitimate counterargument.
-
-However, the AI must NOT score itself 80 simply because
-it mentioned assists and trophies.
-
-It must actually overcome the user's case.
-
-========================================================
-ANOTHER EXAMPLE
-========================================================
-
-USER:
-
-"Messi has won more Ballon d'Ors than Dembélé."
-
-Correct factual claim.
-
-The user should be strongly rewarded.
+Do NOT score the user 40 simply because the argument is short.
 
 A reasonable score could be:
 
-USER: 82-92
+USER: 75-90
 
-AI: 45-65
+depending on the context and quality of the overall round.
 
-depending on the quality of the AI's actual response.
-
-========================================================
-FIRST ROUND
-========================================================
-
-If Round 1 contains only:
-
-"Messi is better than Dembélé."
-
-The user has a defensible position but has not provided evidence.
-
-Do NOT automatically give:
-
-USER 40
-AI 60
-
-Instead:
-
-USER should generally be around 55-65.
-
-AI should generally be around 55-70.
-
-The scores should be reasonably close because neither side
-has yet provided substantial evidence.
+The AI must actually counter the significance of that fact.
 
 ========================================================
-DO NOT USE THE OLD 60/80 PATTERN
+SCORING
 ========================================================
 
-NEVER default to:
+Score each side from 0-100.
 
-60 vs 80
+Consider:
 
-50 vs 70
+1. Factual accuracy
+2. Strength of claims
+3. Evidence
+4. Football knowledge
+5. Reasoning
+6. Relevance
+7. Persuasiveness
+8. Legacy when relevant
+9. Fan/cultural impact when relevant
+10. Ability to directly answer the opponent
 
-70 vs 80
+The AI receives NO BONUS for being the AI.
 
-80 vs 85
+The AI receives NO BONUS for writing more words.
 
-The score must come from the claims.
+Never reward verbosity.
+
+========================================================
+SCORING RANGE
+========================================================
+
+Unsupported claim:
+0-45
+
+Weak argument:
+40-55
+
+Reasonable argument:
+55-70
+
+Strong argument:
+70-82
+
+Very strong argument:
+80-90
+
+Exceptional argument:
+90-100
+
+Do NOT automatically use:
+
+40/60
+50/70
+60/80
+70/80
+80/85
+
+The score must come from the actual claims.
 
 ========================================================
 AI RESPONSE
 ========================================================
 
-Now write the strongest possible FOOTBALL counterargument.
+Respond directly to the user's argument.
 
-You MUST address the user's actual claims.
+If the user is correct, acknowledge it.
 
-Do not dodge them.
+If the user is wrong, explain why.
 
-Do not repeat generic statements such as:
+If the user's point is strong, do not dodge it.
 
-"More context is needed."
-
-Do not change:
-
-"Messi is better overall"
-
-into:
-
-"Who is better right now?"
-
-unless the user explicitly makes it about current ability.
-
-If the user is correct:
-
-ACKNOWLEDGE IT.
-
-Then explain why it does or does not settle the debate.
-
-========================================================
-ROUND SCORING
-========================================================
-
-Score BOTH sides independently.
-
-USER SCORE should reflect:
-
-- factual accuracy
-- relevance
-- football knowledge
-- evidence
-- reasoning
-- debate-specific factors
-- legacy when relevant
-- fan/cultural impact when relevant
-- persuasiveness
-
-AI SCORE should reflect the SAME standards.
-
-The AI gets NO BONUS for being the AI.
-
-The AI gets NO BONUS for writing more words.
+Do not replace an overall comparison with a current-form
+comparison unless the user specifically asks for current form.
 
 ========================================================
 ROUND WINNER
 ========================================================
 
-If the user's case is stronger:
+USER clearly stronger:
+"USER"
 
-USER
+FOOTBALLDEBAITER clearly stronger:
+"FOOTBALLDEBAITER"
 
-If AI's case is stronger:
+Genuinely equal:
+"DRAW"
 
-FOOTBALLDEBAITER
-
-If genuinely equal:
-
-DRAW
-
-========================================================
-FIVE ROUND RULE
-========================================================
-
-The user must have a genuine opportunity to win rounds.
-
-If the user presents multiple strong, relevant factual claims
-that the AI cannot properly counter, the user SHOULD win those
-rounds.
-
-Do NOT artificially manufacture AI victories.
-
-At the same time, do NOT manufacture user victories.
-
-The claims decide the round.
+Do not manufacture a winner.
 
 ========================================================
 FINAL ROUND
@@ -567,37 +475,137 @@ FINAL ROUND
 ${
   currentRound === 5
     ? `
-Calculate the cumulative totals from all five rounds.
+This is ROUND 5.
 
-USER TOTAL:
-all user round scores
+Calculate the cumulative score across all five rounds.
 
-AI TOTAL:
-all AI round scores
+USER TOTAL =
+all five USER round scores
+
+AI TOTAL =
+all five FOOTBALLDEBAITER round scores
 
 Higher total wins.
 
-USER TOTAL > AI TOTAL:
+If USER TOTAL is higher:
 USER WINS
 
-AI TOTAL > USER TOTAL:
+If AI TOTAL is higher:
 FOOTBALLDEBAITER WINS
 
-Equal:
+If equal:
 DRAW
 `
     : `
 This is not the final round.
 
-winner = "CONTINUE"
+winner must be:
+CONTINUE
 `
 }
 
 ========================================================
-RETURN JSON ONLY
+FINAL DECISION — EXTREMELY IMPORTANT
 ========================================================
 
-Return ONLY:
+If this is ROUND 5, the "finalDecision" must be a
+CLEAR, PERSONAL FOOTBALLING STAND.
+
+It must NOT be a neutral essay.
+
+It must NOT be:
+
+"Both players have strengths."
+
+It must NOT be:
+
+"It depends on what you value."
+
+It must NOT be:
+
+"Both are great in their own ways."
+
+It must NOT simply repeat the score.
+
+It must answer:
+
+"WHO WOULD YOU GO WITH OVERALL?"
+
+Use language such as:
+
+"I'll go with Messi overall. His longevity, individual
+honours, World Cup, playmaking and all-time impact give
+him the stronger overall case."
+
+OR:
+
+"I'll go with Ronaldo overall. His longevity, Champions
+League record, goalscoring, trophies and historical
+legacy give him the stronger overall case."
+
+OR:
+
+"I'll go with Real Madrid overall. Their European record,
+historical success, major trophies and sustained legacy
+give them the stronger case."
+
+The final decision MUST:
+
+1. Choose ONE side.
+2. Say "I'll go with..." or equivalent decisive wording.
+3. Give 2-4 specific football reasons.
+4. Address the actual debate.
+5. Be concise.
+6. Avoid "it depends."
+7. Avoid "both are great."
+8. Avoid refusing to choose.
+
+Even if the debate is subjective, MAKE A REASONED STAND.
+
+========================================================
+FINAL DECISION EXAMPLES
+========================================================
+
+GOOD:
+
+"I'll go with Messi overall. His superior playmaking,
+eight Ballon d'Ors, World Cup, longevity and extraordinary
+career production give him the stronger all-time case."
+
+GOOD:
+
+"I'll go with Ronaldo overall. His Champions League
+record, goalscoring longevity, international success and
+ability to perform across different leagues give him the
+stronger overall case."
+
+GOOD:
+
+"I'll go with Real Madrid overall. Their European dominance,
+historic trophy record and enormous influence on football
+give them the stronger club legacy."
+
+BAD:
+
+"Both players have arguments."
+
+BAD:
+
+"It depends on what you value."
+
+BAD:
+
+"There is no clear answer."
+
+BAD:
+
+"Both are world-class."
+
+========================================================
+RETURN ONLY JSON
+========================================================
+
+Return exactly:
 
 {
   "aiResponse": "...",
@@ -621,25 +629,27 @@ No markdown.
 
 No code fences.
 
-Scores MUST be integers between 0 and 100.
+Scores must be integers between 0 and 100.
 
 ========================================================
 FINAL COMMAND
 ========================================================
 
-READ THE USER'S ACTUAL CLAIM.
-
-IDENTIFY WHETHER IT IS FACTUAL OR SUBJECTIVE.
+READ THE ACTUAL CLAIM.
 
 USE REAL FOOTBALL KNOWLEDGE.
 
-REWARD CORRECT RELEVANT CLAIMS.
+REWARD CORRECT FACTS.
 
-CONSIDER LEGACY.
+CONSIDER STATS.
 
 CONSIDER ACHIEVEMENTS.
 
-CONSIDER FAN AND CULTURAL IMPACT WHEN RELEVANT.
+CONSIDER ABILITY.
+
+CONSIDER LEGACY.
+
+CONSIDER FAN/CULTURAL IMPACT WHEN RELEVANT.
 
 MAKE THE AI ACTUALLY COUNTER THE USER.
 
@@ -647,18 +657,18 @@ DO NOT GIVE THE AI A DEFAULT ADVANTAGE.
 
 DO NOT GIVE THE USER A DEFAULT ADVANTAGE.
 
-DO NOT USE REPETITIVE 60/80 SCORES.
+DO NOT USE REPETITIVE SCORES.
 
-THE QUALITY OF THE CLAIMS DETERMINES THE SCORE.
+AND MOST IMPORTANTLY:
+
+AT THE FINAL CALL, PICK A SIDE.
+
+DO NOT SIT ON THE FENCE.
 `;
-
-      // =======================================================
-      // STEP 2 — CALL THE JUDGE
-      // =======================================================
 
       const completion =
         await groq.chat.completions.create({
-          model: "llama-3.3-70b-versatile",
+          model: "openai/gpt-oss-120b",
 
           messages: [
             {
@@ -666,25 +676,21 @@ THE QUALITY OF THE CLAIMS DETERMINES THE SCORE.
               content: `
 You are the independent head judge of a football debate.
 
-You are NOT the winner.
+You must judge football claims fairly.
 
-Your job is to evaluate the claims.
+You are not automatically on the AI's side.
 
-Never give the AI an automatic advantage.
+You are not automatically on the user's side.
 
-A correct football fact is a real advantage.
-
-A well-supported subjective argument is a real advantage.
-
-Legacy matters when relevant.
-
-Fan/cultural impact matters when relevant.
+Use football facts, statistics, achievements, ability,
+legacy and context.
 
 Never reward verbosity.
 
-Never use fixed 60/80 scoring.
+Never use fixed scores.
 
-Never invent statistics.
+At the final round, you MUST choose one side and give
+a clear footballing stand.
               `,
             },
             {
@@ -745,7 +751,9 @@ Never invent statistics.
         Math.max(
           0,
           Math.round(
-            Number(parsed.userScore.total) || 0
+            Number(
+              parsed.userScore.total
+            ) || 0
           )
         )
       );
@@ -755,18 +763,15 @@ Never invent statistics.
         Math.max(
           0,
           Math.round(
-            Number(parsed.aiScore.total) || 0
+            Number(
+              parsed.aiScore.total
+            ) || 0
           )
         )
       );
 
       // =======================================================
-      // IMPORTANT SCORE CORRECTION
-      //
-      // Prevent the exact generic "AI 80 / USER 60" behavior.
-      //
-      // If the user's response contains an obvious factual
-      // comparison, require the AI to actually address it.
+      // PREVENT GENERIC FIRST-ROUND LOW SCORE
       // =======================================================
 
       const userText =
@@ -797,89 +802,12 @@ Never invent statistics.
         );
 
       if (containsFactualComparison) {
-        /*
-         * A factual comparison is not automatically correct,
-         * but if the model has identified it as a meaningful
-         * football claim, prevent a generic AI advantage.
-         */
-
-        if (
-          parsed.aiScore.total >
-          parsed.userScore.total
-        ) {
-          const gap =
-            parsed.aiScore.total -
-            parsed.userScore.total;
-
-          /*
-           * Only allow AI to remain ahead if it has a
-           * substantial counterargument. We use the judge's
-           * own response as evidence of engagement.
-           */
-          const aiResponseText =
-            String(
-              parsed.aiResponse || ""
-            ).toLowerCase();
-
-          const acknowledgesClaim =
-            aiResponseText.includes(
-              "yes"
-            ) ||
-            aiResponseText.includes(
-              "correct"
-            ) ||
-            aiResponseText.includes(
-              "true"
-            ) ||
-            aiResponseText.includes(
-              "however"
-            ) ||
-            aiResponseText.includes(
-              "although"
-            ) ||
-            aiResponseText.includes(
-              "but"
-            );
-
-          if (!acknowledgesClaim) {
-            parsed.userScore.total = Math.max(
-              parsed.userScore.total,
-              parsed.aiScore.total + 5
-            );
-
-            parsed.aiScore.total = Math.min(
-              parsed.aiScore.total,
-              parsed.userScore.total - 5
-            );
-          } else if (gap <= 10) {
-            /*
-             * A close AI lead is allowed, but a generic
-             * small advantage should not be the default.
-             */
-            parsed.userScore.total = Math.max(
-              parsed.userScore.total,
-              parsed.aiScore.total - 5
-            );
-          }
-        }
-
-        /*
-         * Strong factual claims should normally produce
-         * a meaningful score rather than 40-50.
-         */
         if (
           parsed.userScore.total < 60
         ) {
           parsed.userScore.total = 60;
         }
       }
-
-      // =======================================================
-      // FIRST ROUND PROTECTION
-      //
-      // Prevent bare opening opinions from automatically
-      // becoming 40 vs 60.
-      // =======================================================
 
       if (currentRound === 1) {
         const wordCount =
@@ -905,14 +833,10 @@ Never invent statistics.
       }
 
       // =======================================================
-      // BACKEND FINAL WINNER
+      // FINAL ROUND — FORCE A REAL FINAL STAND
       // =======================================================
 
-      if (currentRound < 5) {
-        parsed.winner = "CONTINUE";
-        parsed.finalDecision =
-          "Debate continues.";
-      } else {
+      if (currentRound === 5) {
         const previousUserTotal =
           previousDebate.reduce(
             (sum, item) =>
@@ -945,8 +869,7 @@ Never invent statistics.
           finalUserTotal >
           finalAiTotal
         ) {
-          parsed.winner =
-            "USER WINS";
+          parsed.winner = "USER WINS";
         } else if (
           finalAiTotal >
           finalUserTotal
@@ -954,14 +877,60 @@ Never invent statistics.
           parsed.winner =
             "FOOTBALLDEBAITER WINS";
         } else {
-          parsed.winner =
-            "DRAW";
+          parsed.winner = "DRAW";
+        }
+
+        // If the model somehow returned a vague final call,
+        // replace it with a decisive instruction for the UI.
+        const vagueFinal =
+          String(
+            parsed.finalDecision || ""
+          ).toLowerCase();
+
+        const isVague =
+          !parsed.finalDecision ||
+          vagueFinal.includes(
+            "it depends"
+          ) ||
+          vagueFinal.includes(
+            "both are great"
+          ) ||
+          vagueFinal.includes(
+            "both have"
+          ) ||
+          vagueFinal.includes(
+            "no clear answer"
+          ) ||
+          vagueFinal.includes(
+            "subjective"
+          ) ||
+          vagueFinal.length < 30;
+
+        if (isVague) {
+          if (
+            finalUserTotal >
+            finalAiTotal
+          ) {
+            parsed.finalDecision =
+              "I'll go with your side overall. Your arguments across the five rounds built the stronger overall footballing case.";
+          } else if (
+            finalAiTotal >
+            finalUserTotal
+          ) {
+            parsed.finalDecision =
+              "I'll go with FootballDEBAITER's side overall. The AI's arguments across the five rounds built the stronger overall footballing case.";
+          } else {
+            parsed.finalDecision =
+              "I'll call this a draw overall. Neither side built a clearly stronger case across the five rounds.";
+          }
         }
 
         parsed.finalDecision =
-          `${parsed.winner}. Final score: You ${finalUserTotal} - ${finalAiTotal} FootballDEBAITER. ${
-            parsed.finalDecision || ""
-          }`;
+          `${parsed.finalDecision} Final score: You ${finalUserTotal} - ${finalAiTotal} FootballDEBAITER.`;
+      } else {
+        parsed.winner = "CONTINUE";
+        parsed.finalDecision =
+          "The debate continues.";
       }
 
       // =======================================================
